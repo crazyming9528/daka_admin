@@ -55,6 +55,7 @@ export default {
   height: 50px;
   line-height: 50px;
   border-radius: 0px !important;
+  background-image: linear-gradient(120deg,#97b0ff 10%,#8ed5fd 80%);
   .hamburger-container {
     line-height: 58px;
     height: 50px;

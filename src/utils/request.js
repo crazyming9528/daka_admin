@@ -31,7 +31,8 @@ service.interceptors.response.use(
   */
     const res = response.data
 
-    if (res.status !== 200) {
+    if (res.code !== 200) {
+
       Message({
         message: res.message,
         type: 'error',

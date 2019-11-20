@@ -312,7 +312,13 @@ export const constantRouterMap = [
         path: 'operator',
         name: 'operator',
         component: () => import('@/views/sys/operator/index'),
-        meta: {title: '用户管理', icon: 'product-list'},
+        meta: {title: 'CMS用户管理', icon: 'product-list'},
+      },
+      {
+        path: 'addOperator',
+        name: 'addOperator',
+        component: () => import('@/views/sys/operator/add'),
+        meta: {title: '添加CMS用户', icon: 'product-add'}
       },
       {
         path: 'role',
