@@ -45,13 +45,13 @@
       <span>CMS用户列表</span>
       <el-button
         @click="handleRefresh()"
-        class="btn-add"
+        class="btn-refresh btn-r"
         size="mini">
         刷新
       </el-button>
       <el-button
         @click="handleAddOperator()"
-        class="btn-add"
+        class="btn-add btn-r"
         size="mini">
         添加
       </el-button>
@@ -61,9 +61,12 @@
                 @selection-change="handleSelectionChange"
                 border
                 ref="productTable"
+                stripe
                 style="width: 100%"
-                v-loading="listLoading">
+                v-loading="tableLoading">
         <el-table-column align="center" type="selection" width="60"></el-table-column>
+        <el-table-column align="center" label="#" type="index" width="50">
+        </el-table-column>
         <el-table-column align="center" label="ID" width="100">
           <template slot-scope="scope">{{scope.row.id}}</template>
         </el-table-column>
@@ -99,21 +102,23 @@
             {{scope.row.lastUpdatedAt}}
           </template>
         </el-table-column>
-        <el-table-column align="center" label="操作" width="160">
+        <el-table-column align="center" label="操作" width="350">
           <template slot-scope="scope">
             <p>
               <el-button
-                @click="handleShowOperator(scope.$index, scope.row)"
+                @click="handleShowOperator(scope.$index, scope.row.id)"
                 size="mini">查看
               </el-button>
               <el-button
-                @click="handleUpdateOperator(scope.$index, scope.row)"
+                @click="handleUpdateOperator(scope.$index, scope.row.id)"
                 size="mini">编辑
               </el-button>
-            </p>
-            <p>
               <el-button
-                @click="handleDelete(scope.$index, scope.row)"
+                @click="handleUpdateRole(scope.$index, scope.row.id)"
+                size="mini">更改角色
+              </el-button>
+              <el-button
+                @click="handleDelete(scope.$index, scope.row.id)"
                 size="mini"
                 type="danger">删除
               </el-button>
@@ -154,20 +159,41 @@
         layout="total, sizes,prev, pager, next,jumper">
       </el-pagination>
     </div>
+    <el-dialog
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      :title="operatorDialog.dialogTitle"
+      :visible.sync="operatorDialog.display">
+      <div class="dialog_body">
+        <operatorCard :edit="operatorDialog.editMode" :operator_id="operatorDialog.currentOperator"
+                      @finish="handleDialog"
+                      v-if="operatorDialog.display"></operatorCard>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
     import tableMixin from "@/mixin/tableMixin";
-    import {fetchAdminList} from '@/api/dk_admin'
+    import operatorCard from "./components/operatorCard";
+    import {deleteAdmin, fetchAdminList} from '@/api/dk_admin'
+    import moment from 'moment';
+    import {Message} from 'element-ui'
 
     export default {
         name: "index",
-        components: {},
+        components: {operatorCard},
         mixins: [tableMixin],
         props: {},
         data() {
             return {
+                operatorDialog: {
+                    display: false,//是否显示
+                    editMode: false,//是否是编辑模式
+                    dialogTitle: "",//dialog 标题
+                    currentOperator: null,//当前正在处理的cms用户
+                },
+                tableLoading: true,
                 tableDataSource: [],
                 listQuery: {
                     username: null,
@@ -211,6 +237,8 @@
         methods: {
 
             getTableDataSource() {
+
+                this.tableLoading = true;
                 const params = Object.assign({
                     pageSize: this.tableMixin_pageSize,
                     pageNum: this.tableMixin_currentPage,
@@ -219,10 +247,16 @@
                 fetchAdminList(params).then(result => {
                     const {code, data, message} = result;
                     if (code === 200) {
-                        this.tableDataSource = data.records;
+                        this.tableDataSource = data.records.map(result => {
+                            result.lastUpdatedAt = moment(result.lastUpdatedAt).format('YYYY-MM-DD HH:mm:ss')
+                            return result;
+                        });
+
                         this.tableMixin_total = data.total;
                     }
-                    console.log(result, 33333);
+
+                }).finally(() => {
+                    this.tableLoading = false;
                 })
 
 
@@ -238,20 +272,36 @@
                 this.selectProductCateValue = [];
                 this.listQuery = Object.assign({}, defaultListQuery);
             },
+            handleDialog() {
+                this.handleRefresh();
+                this.operatorDialog.display = false;
+            },
             handleAddOperator() {
-                // this.$router.push({path:'/pms/addProduct'});
+                this.operatorDialog.display = true;
+                this.operatorDialog.editMode = true;
+                this.operatorDialog.dialogTitle = '添加CMS用户';
+                this.operatorDialog.currentOperator = null;//销毁先前可能存在的  id
             },
             handleSelectionChange(val) {
                 this.multipleSelection = val;
             },
-            handleUpdateOperator() {
+            handleUpdateOperator(index, id) {
+                this.operatorDialog.display = true;
+                this.operatorDialog.editMode = true;
+                this.operatorDialog.dialogTitle = '修改CMS用户信息';
+                this.operatorDialog.currentOperator = id;
+            },
+            handleUpdateRole() {
 
             },
             handleRefresh() {
                 this.getTableDataSource();
             },
-            handleShowOperator(data) {
-
+            handleShowOperator(index, id) {
+                this.operatorDialog.display = true;
+                this.operatorDialog.editMode = false;
+                this.operatorDialog.dialogTitle = 'CMS用户信息';
+                this.operatorDialog.currentOperator = id;
             },
 
             handleDelete(index, row) {
@@ -263,8 +313,29 @@
                     // let ids = [];
                     // ids.push(row.id);
                     // this.updateDeleteStatus(1,ids);
+
+                    if (Array.isArray(row)) {
+
+                    } else {
+                        deleteAdmin(row).then(result => {
+                            const {code, data, message} = result;
+                            if (code === 200) {
+                                Message({
+                                    message: message,
+                                    type: 'success',
+                                    duration: 3 * 1000
+                                })
+
+                                this.handleRefresh();
+                            }
+
+
+                        })
+
+                    }
                 });
             },
+
         },
         created() {
             this.getTableDataSource();

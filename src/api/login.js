@@ -5,7 +5,7 @@ export function login(username, password) {
     url: '/admin/login',
     method: 'post',
     data: {
-      user_name:username,
+      userName:username,
       password
     }
   })

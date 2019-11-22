@@ -19,3 +19,32 @@ export function fetchAdminList(params) {
 
 }
 
+
+export function fetchAdmDetail(id) {
+  return request({
+    url: '/admin/get/' + id,
+    method: 'get',
+
+  })
+
+}
+
+
+export function updateAdmin(id, data) {
+  return request({
+    url: '/admin/update/' + id,
+    method: 'post',
+    data
+  })
+
+}
+
+
+export function deleteAdmin(id) {
+  return request({
+    url: '/admin/delete/' + id,
+    method: 'post',
+  })
+
+}
+
