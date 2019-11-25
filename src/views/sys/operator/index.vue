@@ -1,6 +1,5 @@
 <template>
   <div class="app-container">
-
     <el-card class="filter-container" shadow="never">
       <div>
         <i class="el-icon-search"></i>
@@ -166,7 +165,7 @@
       :visible.sync="operatorDialog.display">
       <div class="dialog_body">
         <operatorCard :edit="operatorDialog.editMode" :operator_id="operatorDialog.currentOperator"
-                      @finish="handleDialog"
+                      @finish="closeDialog(true)"
                       v-if="operatorDialog.display"></operatorCard>
       </div>
     </el-dialog>
@@ -272,8 +271,10 @@
                 this.selectProductCateValue = [];
                 this.listQuery = Object.assign({}, defaultListQuery);
             },
-            handleDialog() {
-                this.handleRefresh();
+            closeDialog(refresh) {
+                if (refresh){
+                    this.handleRefresh();
+                }
                 this.operatorDialog.display = false;
             },
             handleAddOperator() {

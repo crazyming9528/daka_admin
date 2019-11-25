@@ -315,12 +315,6 @@ export const constantRouterMap = [
         meta: {title: 'CMS用户管理', icon: 'product-list'},
       },
       {
-        path: 'addOperator',
-        name: 'addOperator',
-        component: () => import('@/views/sys/operator/add'),
-        meta: {title: '添加CMS用户', icon: 'product-add'}
-      },
-      {
         path: 'role',
         name: 'role',
         component: () => import('@/views/sys/role/index'),

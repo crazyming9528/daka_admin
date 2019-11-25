@@ -108,7 +108,6 @@
             addOperator(data) {
                 adminRegister(data).then(result => {
                         const {code, data, message} = result;
-                        debugger
                         if (code === 200) {
                             Message({
                                 message: message,
